@@ -16,12 +16,12 @@ OFF = 4
 
 def load_configuration():
     locations = [
-        # Config file in the same folder
-        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config.json'),
-        # Config file in the home directory
-        os.path.join(os.path.expanduser("~"), '.ents-projector-control.config.json'),
         # Config file in /etc/ents
         '/etc/ents/projectors.json',
+        # Config file in the home directory
+        os.path.join(os.path.expanduser("~"), '.ents-projector-control.config.json'),
+        # Config file in the same folder
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config.json'),
     ]
 
     # Try to load each location but immediately fail if the path doesn't exist, there's no point trying to read from it
