@@ -1,12 +1,11 @@
 [tool.poetry]
 name = "ents-projector-control"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = ["Ryan Delaney <vitineth@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
-nec-pd-sdk = "^18.2.231"
+python = "^3.7"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
