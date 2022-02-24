@@ -3,11 +3,11 @@ import json
 import os.path
 from typing import List, Dict
 
-from nec_pd_sdk.nec_pd_sdk import NECPD
-from nec_pd_sdk.protocol import PDError
-
 # Constants retrieved from
 # https://github.com/signageos/nec-pd-sdk/blob/17aecc4b3a98774e395cfe52ae94be6a3fbf5de6/src/constants.ts
+from ents_projector_control.projector import Projector, PowerState
+from ents_projector_control.utils import is_pathname_valid
+
 ON = 1
 STANDBY = 2
 SUSPEND = 3
@@ -26,10 +26,11 @@ def load_configuration():
 
     # Try to load each location but immediately fail if the path doesn't exist, there's no point trying to read from it
     for location in locations:
+        if not is_pathname_valid(location):
+            continue
         if not os.path.exists(location):
-            break
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'config.json'), 'r',
-                  encoding='utf8') as f:
+            continue
+        with open(location, 'r', encoding='utf8') as f:
             return json.loads(f.read())
 
     # Loading immediately returns if it parses so if execution ends up down here the config files didn't exist
@@ -71,27 +72,31 @@ def power(projector: str, args: List[str]):
     # Try and connect - this is where things will go wrong
     ip = config['projector'][projector]
     try:
-        client = NECPD.from_ip_address(ip)
+        client = Projector(ip)
+        client.connect()
+        # client = NECPD.from_ip_address(ip)
     except PDError as e:
         print("Failed to connect to the projector due to an error: {}".format(e))
         return
 
     # Try getting the current power state as a way to avoid sending the same state is already is (on when it's already
     # on for example) and also as a means to test the connection. Then issue the command if the states don't match
-    power_state = client.command_power_status_read()
+    power_state = client.get_power_state()
 
     if state == 'on':
-        if power_state == ON:
+        if power_state == PowerState.ON:
             print("Warn: projector is already on, doing nothing")
             return
 
-        client.command_power_status_set(ON)
+        client.power_on()
     elif state == 'off':
-        if power_state == OFF:
+        if power_state == PowerState.STANDBY:
             print("Warn: projector is already off, doing nothing")
             return
 
-        client.command_power_status_set(OFF)
+        client.power_off()
+
+    client.close()
 
 
 def main():
